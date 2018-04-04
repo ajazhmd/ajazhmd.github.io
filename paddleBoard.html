@@ -1,0 +1,249 @@
+<html>
+<head>
+<style>
+
+#gameBoard{
+width:500px;
+height:500px;
+border:thin #ccc solid;
+margin:0 auto;
+}
+
+.container{
+width:100%;
+text-align:center;
+}
+
+</style>
+</head>
+<body>
+<div style="text-align:center;display:"><h1>Paddle Battle!</h1></div>
+<div class='container'style="">
+<div>
+	<h2>Level:<span id="level">1</span>   Score:<span id="score">0</span></h2>
+	
+	<input type="button" href="#" style"float:right" id="autoPlay" value="Autoplay"/><br/><br/>
+</div>
+
+	<canvas id="gameBoard" width="500" height="500" style="border:1px solid #d3d3d3;">	
+</div>
+</body>
+<script src="jquery.min.js"></script>
+
+<script>
+
+var canvas;
+var context;
+
+var fps=1000/120;
+var pdX=250;
+var pdY=250;
+var paddleSpeed=5;
+var ballSpeed=1;
+	
+var timer=0;
+var bbX;
+var bbY;
+var score=0;
+var level=1;
+var autoplay=false;
+
+window.onload=function(){
+	
+	canvas=document.getElementById("gameBoard");
+	context=canvas.getContext("2d");
+	beginGame();
+	
+}
+
+function beginGame(){
+	document.addEventListener('keydown',function(event){
+		movePaddle(event);
+	},false);
+	var auto=document.getElementById('autoPlay');
+	auto.addEventListener('click',function(){
+		autoplay=autoplay==true?false:true;
+		
+	},false);
+	
+	setInterval(game,fps);
+	
+	
+}
+
+function checkCatch(){
+	if(bbX!=undefined){
+		var paddleUpper=pdY-5;
+		var paddleLower=pdY+5;
+		if(bbX.x>0  && bbX.x<=10 && bbX.y>=paddleUpper && bbX.y<=paddleLower){
+			console.log('catch');
+			score++;
+			bbX=null;
+			if((score%5)==0){
+			ballSpeed+=1;
+			}
+		}
+	}
+	
+	if(bbY!=undefined){
+		var paddleLeft=pdX-5;
+		var paddleRight=pdX+5;
+		if(bbY.y>0 && bbY.y<=10 && bbY.x>=paddleLeft && bbY.x<=paddleRight){
+			console.log('catch');
+			score++;
+			bbY=null;
+			if((score%5)==0){
+			ballSpeed+=1;
+			}
+		}
+	}
+}
+
+
+
+function getRandomPosition() {
+	var min=30;
+	var max=470;
+    return Math.random() * (max - min) + min;
+}
+
+function game(){
+	clearBoard();
+	drawPaddles();
+	checkCatch();
+	updateScore();
+	timer++;
+		if(timer>=5000){
+			timer=0;
+		}
+		
+		if((timer%500)==0){
+		bbX=new Ball(500,getRandomPosition());
+		}else if((timer%600)==0){
+		bbY=new BallY(getRandomPosition(),500);
+		}
+		if(bbX!=undefined){
+			bbX.move();
+		}
+		if(bbY!=undefined){
+			bbY.move();
+		}
+		
+		if(autoplay==true){
+		var autoPlayPaddleSpeed=5;
+		if(bbX!=undefined){
+			if(pdY>=bbX.y){
+				pdY-=autoPlayPaddleSpeed;	
+			}else if(pdY<bbX.y){
+				pdY+=autoPlayPaddleSpeed;	
+			}
+			}
+			if(bbY!=undefined){
+			if(pdX>=bbY.x){
+				pdX-=autoPlayPaddleSpeed;	
+			}else if(pdX<bbY.x){
+				pdX+=autoPlayPaddleSpeed;	
+			}
+			}
+		}
+		
+		
+}
+
+function updateScore(){
+	$("#score").html(score);
+	level=Math.floor(score/5);
+	$("#level").html(level);
+}
+
+function levelUp(){
+ballSpeed+=1;
+}
+
+function movePaddle(event){
+	if(event.keyCode==38){
+		if(pdY>10){
+			pdY-=paddleSpeed;
+		}
+	}else if(event.keyCode==40){
+		if(pdY<490){
+				pdY+=paddleSpeed;
+			}
+	}else if(event.keyCode==37){
+		if(pdX>=10){
+				pdX-=paddleSpeed;
+			}
+	}else if(event.keyCode==39){
+		if(pdX<490){
+				pdX+=paddleSpeed;
+			}
+	}
+}
+
+
+
+function Ball(x,y){
+	this.x=x;
+	this.y=y;
+	this.move=function(){
+		this.x-=ballSpeed;
+		drawBall(this.x,y);
+	};
+}
+
+function BallY(x,y){
+	this.x=x;
+	this.y=y;
+	this.move=function(){
+		this.y-=ballSpeed;
+		drawBall(this.x,this.y);
+	};
+}
+
+function drawBall(x,y){
+	context.beginPath()
+	context.lineWidth=5;
+    context.moveTo(x,y);
+	context.lineTo(x,y+5);
+	context.strokeStyle='#000000';
+	context.stroke();
+}
+
+function drawPaddles(){
+var x=pdX;
+var y=pdY;
+	context.beginPath()
+	context.lineWidth=10;
+    context.moveTo(0,0);
+	context.lineTo(0,500);
+	context.strokeStyle='#000000';
+	context.stroke();
+	
+	context.beginPath()
+    context.moveTo(0,y-5);
+	context.lineTo(0,y+5);
+	context.strokeStyle='#FFFFFF';
+	context.stroke();
+	
+	context.beginPath()
+	context.lineWidth=10;
+    context.moveTo(0,0);
+	context.lineTo(500,0);
+	context.strokeStyle='#000000';
+	context.stroke();
+	
+	context.beginPath()
+    context.moveTo(x-5,0);
+	context.lineTo(x+5,0);
+	context.strokeStyle='#FFFFFF';
+	context.stroke();
+}
+
+function clearBoard(){
+	context=canvas.getContext("2d");
+	context.clearRect(0,0,500,500);
+}
+
+</script>
+</html>
+
